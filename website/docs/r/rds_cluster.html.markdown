@@ -121,6 +121,7 @@ Default: A 30-minute window selected at random from an 8-hour block of time per 
 * `enabled_cloudwatch_logs_exports` - (Optional) List of log types to export to cloudwatch. If omitted, no logs will be exported.
    The following log types are supported: `audit`, `error`, `general`, `slowquery`.
 * `scaling_configuration` - (Optional) Nested attribute with scaling properties. Only valid when `engine_mode` is set to `serverless`. More details below.
+* `restore_in_time` - (Optional) Nested attribute for [point in time restore](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html). More details below.
 * `tags` - (Optional) A mapping of tags to assign to the DB cluster.
 
 ### S3 Import Options
@@ -176,6 +177,30 @@ resource "aws_rds_cluster" "example" {
 * `max_capacity` - (Optional) The maximum capacity. The maximum capacity must be greater than or equal to the minimum capacity. Valid capacity values are `2`, `4`, `8`, `16`, `32`, `64`, `128`, and `256`. Defaults to `16`.
 * `min_capacity` - (Optional) The minimum capacity. The minimum capacity must be lesser than or equal to the maximum capacity. Valid capacity values are `2`, `4`, `8`, `16`, `32`, `64`, `128`, and `256`. Defaults to `2`.
 * `seconds_until_auto_pause` - (Optional) The time, in seconds, before an Aurora DB cluster in serverless mode is paused. Valid values are `300` through `86400`. Defaults to `300`.
+
+### restore_in_time Argument Reference
+
+Example:
+
+```hcl
+resource "aws_rds_cluster" "example-clone" {
+  # ... other configuration ...
+
+  restore_in_time {
+    source_cluster_identifier = "example"
+    restore_type = "copy-on-write"
+    use_latest_restorable_time = true
+  }
+}
+```
+
+* `source_cluster_identifier` - (Required) The identifier of the source database cluster from which to restore.
+* `restore_type` - (Optional) Type of restore to be performed.
+   Valid options are `full-copy` (default) and `copy-on-write`.
+* `use_latest_restorable_time` - (Optional) Set to true to restore the database cluster to the latest restorable backup time. Defaults to false.
+* `restore_to_time` - (Optional) Date and time in UTC format to restore the database cluster to.
+
+~> **NOTE:** `use_latest_restorable_time` and `restore_to_time` conflict with each other. 
 
 ## Attributes Reference
 
